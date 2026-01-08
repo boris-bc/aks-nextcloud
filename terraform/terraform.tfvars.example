@@ -1,0 +1,24 @@
+# Example terraform.tfvars file
+# Copy this file to terraform.tfvars and customize the values
+
+resource_group_name = "nextcloud-rg"
+location            = "westeurope"
+prefix              = "nextcloud"
+
+# AKS Configuration
+node_count     = 2
+min_node_count = 1
+max_node_count = 5
+vm_size        = "Standard_D2s_v3"
+
+# PostgreSQL Configuration
+postgres_admin_username = "nextcloudadmin"
+postgres_database_name  = "nextcloud"
+
+# Tags
+tags = {
+  Environment = "production"
+  ManagedBy   = "terraform"
+  Project     = "nextcloud"
+  CostCenter  = "IT"
+}
