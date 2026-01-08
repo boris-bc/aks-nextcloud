@@ -14,10 +14,10 @@ metadata:
 spec:
   tls:
   - hosts:
-    - nextcloud.example.com
+    - nextcloud.example.com  # CHANGE THIS: Replace with your actual domain name
     secretName: nextcloud-tls
   rules:
-  - host: nextcloud.example.com
+  - host: nextcloud.example.com  # CHANGE THIS: Replace with your actual domain name
     http:
       paths:
       - path: /

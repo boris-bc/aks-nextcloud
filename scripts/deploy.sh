@@ -68,8 +68,14 @@ kubectl create secret generic nextcloud-admin \
   --from-literal=admin-password="$ADMIN_PASSWORD" \
   --namespace=nextcloud --dry-run=client -o yaml | kubectl apply -f -
 
-echo "Admin password has been set to: $ADMIN_PASSWORD" >> /tmp/nextcloud-credentials.txt
-echo "Admin credentials saved to: /tmp/nextcloud-credentials.txt"
+# Save credentials securely
+CREDS_DIR="$HOME/.nextcloud"
+mkdir -p "$CREDS_DIR"
+chmod 700 "$CREDS_DIR"
+echo "Admin password: $ADMIN_PASSWORD" > "$CREDS_DIR/credentials.txt"
+chmod 600 "$CREDS_DIR/credentials.txt"
+
+echo "Admin credentials saved securely to: $CREDS_DIR/credentials.txt"
 
 echo "Secrets created successfully!"
 
@@ -102,9 +108,9 @@ echo ""
 echo "Nextcloud is accessible at: http://$EXTERNAL_IP"
 echo "Default admin credentials:"
 echo "  Username: admin"
-echo "  Password: See /tmp/nextcloud-credentials.txt"
+echo "  Password: See $HOME/.nextcloud/credentials.txt"
 echo ""
-echo "IMPORTANT: Save your admin password from /tmp/nextcloud-credentials.txt"
+echo "IMPORTANT: Save your admin password from $HOME/.nextcloud/credentials.txt"
 echo ""
 echo "To check status: kubectl get all -n nextcloud"
 echo "To view logs: kubectl logs -f deployment/nextcloud -n nextcloud"
