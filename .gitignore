@@ -1,0 +1,26 @@
+# Secrets template - DO NOT commit actual secrets to git
+*.secret
+*.key
+*.pem
+
+# Kubernetes temporary files
+*.tmp
+
+# Backup files
+*-backup.sql
+nextcloud-backup/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Local development
+.env
+.env.local
