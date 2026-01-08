@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nextcloud-config
+  namespace: nextcloud
+data:
+  POSTGRES_HOST: "postgres-service"
+  POSTGRES_DB: "nextcloud"
+  REDIS_HOST: "redis-service"
+  NEXTCLOUD_TRUSTED_DOMAINS: "nextcloud.example.com"
+  OVERWRITEPROTOCOL: "https"
