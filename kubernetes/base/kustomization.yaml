@@ -9,7 +9,7 @@ resources:
   - redis.yaml
   - nextcloud-deployment.yaml
   - nextcloud-service.yaml
-  - ingress.yaml
+  # Note: ingress.yaml is excluded from base - add it in overlays with environment-specific domain
 
 commonLabels:
   app.kubernetes.io/name: nextcloud

@@ -60,8 +60,8 @@ kubectl create secret generic azure-storage \
   --from-literal=azurestorageaccountkey="$STORAGE_ACCOUNT_KEY" \
   --namespace=nextcloud --dry-run=client -o yaml | kubectl apply -f -
 
-# Generate a random admin password
-ADMIN_PASSWORD=$(openssl rand -base64 24 | tr -d "=+/" | cut -c1-24)
+# Generate a random admin password (32 chars for stronger security)
+ADMIN_PASSWORD=$(openssl rand -base64 32 | cut -c1-32)
 
 kubectl create secret generic nextcloud-admin \
   --from-literal=admin-username="admin" \

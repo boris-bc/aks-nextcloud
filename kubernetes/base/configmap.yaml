@@ -6,7 +6,6 @@ metadata:
 data:
   POSTGRES_DB: "nextcloud"
   NEXTCLOUD_TRUSTED_DOMAINS: "*.azurewebsites.net nextcloud.example.com"
-  NEXTCLOUD_ADMIN_USER: "admin"
   REDIS_HOST: "redis"
   REDIS_HOST_PORT: "6379"
   PHP_MEMORY_LIMIT: "512M"

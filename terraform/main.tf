@@ -107,8 +107,9 @@ resource "azurerm_kubernetes_cluster" "nextcloud" {
 }
 
 # Storage Account for Nextcloud data
+# Note: Storage account names must be 3-24 characters, lowercase letters and numbers only
 resource "azurerm_storage_account" "nextcloud" {
-  name                     = "${replace(var.prefix, "-", "")}storage"
+  name                     = lower(substr(replace(var.prefix, "-", ""), 0, 20))
   resource_group_name      = azurerm_resource_group.nextcloud.name
   location                 = azurerm_resource_group.nextcloud.location
   account_tier             = "Standard"
