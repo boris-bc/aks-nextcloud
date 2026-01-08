@@ -59,6 +59,21 @@ resource "azurerm_subnet" "postgres" {
   }
 }
 
+# Private DNS Zone for PostgreSQL
+resource "azurerm_private_dns_zone" "postgres" {
+  name                = "privatelink.postgres.database.azure.com"
+  resource_group_name = azurerm_resource_group.nextcloud.name
+  tags                = var.tags
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "postgres" {
+  name                  = "${var.prefix}-postgres-vnet-link"
+  resource_group_name   = azurerm_resource_group.nextcloud.name
+  private_dns_zone_name = azurerm_private_dns_zone.postgres.name
+  virtual_network_id    = azurerm_virtual_network.nextcloud.id
+  tags                  = var.tags
+}
+
 # AKS Cluster
 resource "azurerm_kubernetes_cluster" "nextcloud" {
   name                = "${var.prefix}-aks"
@@ -124,6 +139,13 @@ resource "azurerm_postgresql_flexible_server" "nextcloud" {
   sku_name               = "B_Standard_B1ms"
   zone                   = "1"
   
+  # Security: Disable public network access - only accessible from VNet
+  public_network_access_enabled = false
+  delegated_subnet_id           = azurerm_subnet.postgres.id
+  private_dns_zone_id           = azurerm_private_dns_zone.postgres.id
+  
+  depends_on = [azurerm_private_dns_zone_virtual_network_link.postgres]
+  
   tags = var.tags
 }
 
@@ -134,10 +156,5 @@ resource "azurerm_postgresql_flexible_server_database" "nextcloud" {
   charset   = "UTF8"
 }
 
-# Allow AKS to access PostgreSQL
-resource "azurerm_postgresql_flexible_server_firewall_rule" "aks" {
-  name             = "allow-aks"
-  server_id        = azurerm_postgresql_flexible_server.nextcloud.id
-  start_ip_address = "10.0.0.0"
-  end_ip_address   = "10.0.255.255"
-}
+# Note: Firewall rules are not needed when public_network_access_enabled = false
+# The database is only accessible from within the VNet via private endpoint

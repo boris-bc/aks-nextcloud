@@ -139,7 +139,7 @@ kubectl get service nextcloud -n nextcloud
 For production with Ingress:
 1. Install an Ingress controller (e.g., NGINX Ingress Controller)
 2. Install cert-manager for TLS certificates
-3. Update the Ingress resource with your domain name
+3. **Important:** Update the Ingress resource in `kubernetes/base/ingress.yaml` with your actual domain name (replace `nextcloud.example.com`)
 4. Access Nextcloud at https://your-domain.com
 
 ## Configuration

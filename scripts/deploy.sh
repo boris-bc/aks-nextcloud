@@ -60,10 +60,16 @@ kubectl create secret generic azure-storage \
   --from-literal=azurestorageaccountkey="$STORAGE_ACCOUNT_KEY" \
   --namespace=nextcloud --dry-run=client -o yaml | kubectl apply -f -
 
+# Generate a random admin password
+ADMIN_PASSWORD=$(openssl rand -base64 24 | tr -d "=+/" | cut -c1-24)
+
 kubectl create secret generic nextcloud-admin \
   --from-literal=admin-username="admin" \
-  --from-literal=admin-password="ChangeMe123!" \
+  --from-literal=admin-password="$ADMIN_PASSWORD" \
   --namespace=nextcloud --dry-run=client -o yaml | kubectl apply -f -
+
+echo "Admin password has been set to: $ADMIN_PASSWORD" >> /tmp/nextcloud-credentials.txt
+echo "Admin credentials saved to: /tmp/nextcloud-credentials.txt"
 
 echo "Secrets created successfully!"
 
@@ -96,7 +102,9 @@ echo ""
 echo "Nextcloud is accessible at: http://$EXTERNAL_IP"
 echo "Default admin credentials:"
 echo "  Username: admin"
-echo "  Password: ChangeMe123! (PLEASE CHANGE THIS!)"
+echo "  Password: See /tmp/nextcloud-credentials.txt"
+echo ""
+echo "IMPORTANT: Save your admin password from /tmp/nextcloud-credentials.txt"
 echo ""
 echo "To check status: kubectl get all -n nextcloud"
 echo "To view logs: kubectl logs -f deployment/nextcloud -n nextcloud"
