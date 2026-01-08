@@ -83,9 +83,6 @@ spec:
           httpGet:
             path: /status.php
             port: 80
-            httpHeaders:
-            - name: Host
-              value: nextcloud.example.com
           initialDelaySeconds: 60
           periodSeconds: 10
           timeoutSeconds: 5
@@ -93,9 +90,6 @@ spec:
           httpGet:
             path: /status.php
             port: 80
-            httpHeaders:
-            - name: Host
-              value: nextcloud.example.com
           initialDelaySeconds: 30
           periodSeconds: 10
           timeoutSeconds: 5

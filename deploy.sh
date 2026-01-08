@@ -2,6 +2,7 @@
 
 # Nextcloud AKS Deployment Script
 # This script deploys Nextcloud to an Azure Kubernetes Service cluster
+# Usage: ./deploy.sh [--non-interactive|-y]
 
 set -e
 
@@ -33,10 +34,18 @@ if grep -q "CHANGE_ME" k8s/base/secrets.yaml; then
     echo "  - nextcloud-admin-password"
     echo "  - redis-password"
     echo ""
-    read -p "Have you updated the secrets? (yes/no): " answer
-    if [ "$answer" != "yes" ]; then
-        echo "Please update the secrets before deploying."
-        exit 1
+    
+    # Check for non-interactive mode
+    if [ "$1" == "--non-interactive" ] || [ "$1" == "-y" ]; then
+        echo "Running in non-interactive mode, but secrets are not customized!"
+        echo "Please update secrets before deploying in production."
+        echo "Continuing anyway (use for testing only)..."
+    else
+        read -p "Have you updated the secrets? (yes/no): " answer
+        if [ "$answer" != "yes" ]; then
+            echo "Please update the secrets before deploying."
+            exit 1
+        fi
     fi
 fi
 

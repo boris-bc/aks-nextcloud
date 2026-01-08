@@ -97,7 +97,8 @@ echo "----------------------"
 # Check PostgreSQL
 echo -n "PostgreSQL deployment... "
 if kubectl get deployment -n nextcloud postgres &> /dev/null; then
-    READY=$(kubectl get deployment -n nextcloud postgres -o jsonpath='{.status.readyReplicas}')
+    READY=$(kubectl get deployment -n nextcloud postgres -o jsonpath='{.status.readyReplicas}' || echo "0")
+    READY=${READY:-0}
     DESIRED=$(kubectl get deployment -n nextcloud postgres -o jsonpath='{.spec.replicas}')
     if [ "$READY" == "$DESIRED" ]; then
         echo -e "${GREEN}✓ ($READY/$DESIRED ready)${NC}"
@@ -111,7 +112,8 @@ fi
 # Check Redis
 echo -n "Redis deployment... "
 if kubectl get deployment -n nextcloud redis &> /dev/null; then
-    READY=$(kubectl get deployment -n nextcloud redis -o jsonpath='{.status.readyReplicas}')
+    READY=$(kubectl get deployment -n nextcloud redis -o jsonpath='{.status.readyReplicas}' || echo "0")
+    READY=${READY:-0}
     DESIRED=$(kubectl get deployment -n nextcloud redis -o jsonpath='{.spec.replicas}')
     if [ "$READY" == "$DESIRED" ]; then
         echo -e "${GREEN}✓ ($READY/$DESIRED ready)${NC}"
@@ -125,7 +127,8 @@ fi
 # Check Nextcloud
 echo -n "Nextcloud deployment... "
 if kubectl get deployment -n nextcloud nextcloud &> /dev/null; then
-    READY=$(kubectl get deployment -n nextcloud nextcloud -o jsonpath='{.status.readyReplicas}')
+    READY=$(kubectl get deployment -n nextcloud nextcloud -o jsonpath='{.status.readyReplicas}' || echo "0")
+    READY=${READY:-0}
     DESIRED=$(kubectl get deployment -n nextcloud nextcloud -o jsonpath='{.spec.replicas}')
     if [ "$READY" == "$DESIRED" ]; then
         echo -e "${GREEN}✓ ($READY/$DESIRED ready)${NC}"
