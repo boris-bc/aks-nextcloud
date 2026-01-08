@@ -2,6 +2,8 @@
 
 This repository provides a complete setup for deploying Nextcloud on Azure Kubernetes Service (AKS) with PostgreSQL database and Redis caching.
 
+> 🚀 **New to this?** Start with the [Getting Started Guide](GETTING_STARTED.md) for a quick 5-minute deployment!
+
 ## Features
 
 - ✅ Production-ready Nextcloud deployment
