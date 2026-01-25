@@ -18,28 +18,6 @@ spec:
       labels:
         app: nextcloud
     spec:
-      initContainers:
-      - name: configure-trusted-domains
-        image: nextcloud:28-apache
-        command:
-        - sh
-        - -c
-        - |
-          # Check if Nextcloud is already installed
-          if [ -f /var/www/html/config/config.php ] && grep -q "'installed' => true" /var/www/html/config/config.php; then
-            echo "Nextcloud is installed, configuring trusted domains..."
-            su -s /bin/sh www-data -c "php /var/www/html/occ config:system:set trusted_domains 1 --value='*.azurewebsites.net'" || echo "Warning: Failed to set trusted domain 1"
-            su -s /bin/sh www-data -c "php /var/www/html/occ config:system:set trusted_domains 2 --value='*.westeurope.cloudapp.azure.com'" || echo "Warning: Failed to set trusted domain 2"
-            su -s /bin/sh www-data -c "php /var/www/html/occ config:system:set trusted_domains 3 --value='nextcloud.example.com'" || echo "Warning: Failed to set trusted domain 3"
-            echo "Trusted domains configured successfully"
-          else
-            echo "Nextcloud not yet installed, skipping trusted domains configuration (will use NEXTCLOUD_TRUSTED_DOMAINS env var during installation)"
-          fi
-        volumeMounts:
-        - name: nextcloud-data
-          mountPath: /var/www/html/data
-        - name: nextcloud-config
-          mountPath: /var/www/html/config
       containers:
       - name: nextcloud
         image: nextcloud:28-apache

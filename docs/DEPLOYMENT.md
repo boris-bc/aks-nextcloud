@@ -22,7 +22,6 @@ This deployment uses an **optimized split storage approach** for fast initializa
    - **Mounted from Azure Files** (ReadWriteMany)
    - **Why**: Config.php and settings must be consistent across pods
    - Size: 1GB
-   - **Note**: An init container runs before each pod starts to update trusted domains using the `occ` command
 
 ### Why Not Mount Entire /var/www/html?
 
@@ -286,34 +285,6 @@ kubectl run -it --rm debug --image=mysql:8.0 --restart=Never -n nextcloud -- mys
 ```
 
 **Note:** The `mysql` command is not available in Nextcloud pods. Use a separate MySQL debug pod as shown above.
-
-### Updating Trusted Domains
-
-The deployment automatically configures trusted domains using an init container that runs before each pod starts. The init container uses the `occ` command to update the config.php file.
-
-**Configured trusted domains:**
-- `*.azurewebsites.net` (Azure web apps)
-- `*.westeurope.cloudapp.azure.com` (Azure public IP DNS names)
-- `nextcloud.example.com` (your custom domain placeholder)
-
-**To add additional trusted domains:**
-
-1. Edit the init container in `kubernetes/base/nextcloud-deployment.yaml`:
-```yaml
-su -s /bin/sh www-data -c "php /var/www/html/occ config:system:set trusted_domains 4 --value='your.domain.com'"
-```
-
-2. Apply the changes:
-```bash
-kubectl apply -f kubernetes/base/nextcloud-deployment.yaml
-kubectl delete pods -n nextcloud -l app=nextcloud
-```
-
-**To manually update trusted domains in a running pod:**
-```bash
-POD_NAME=$(kubectl get pods -n nextcloud -l app=nextcloud -o jsonpath='{.items[0].metadata.name}')
-kubectl exec -n nextcloud $POD_NAME -- su -s /bin/sh www-data -c "php occ config:system:set trusted_domains 4 --value='your.domain.com'"
-```
 
 ### Database Connection Issues
 
