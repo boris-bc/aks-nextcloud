@@ -13,27 +13,27 @@ output "resource_group_name" {
   value       = azurerm_resource_group.nextcloud.name
 }
 
-output "mariadb_fqdn" {
-  description = "FQDN of the MariaDB server"
-  value       = azurerm_mariadb_server.nextcloud.fqdn
+output "mysql_fqdn" {
+  description = "FQDN of the MySQL server"
+  value       = azurerm_mysql_flexible_server.nextcloud.fqdn
   sensitive   = true
 }
 
-output "mariadb_admin_username" {
-  description = "Administrator username for MariaDB"
-  value       = azurerm_mariadb_server.nextcloud.administrator_login
+output "mysql_admin_username" {
+  description = "Administrator username for MySQL"
+  value       = azurerm_mysql_flexible_server.nextcloud.administrator_login
   sensitive   = true
 }
 
-output "mariadb_admin_password" {
-  description = "Administrator password for MariaDB"
-  value       = random_password.mariadb.result
+output "mysql_admin_password" {
+  description = "Administrator password for MySQL"
+  value       = random_password.mysql.result
   sensitive   = true
 }
 
-output "mariadb_database_name" {
-  description = "Name of the MariaDB database"
-  value       = azurerm_mariadb_database.nextcloud.name
+output "mysql_database_name" {
+  description = "Name of the MySQL database"
+  value       = azurerm_mysql_flexible_database.nextcloud.name
 }
 
 output "storage_account_name" {

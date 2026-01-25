@@ -60,10 +60,10 @@ kubectl get nodes
 
 ```bash
 kubectl create secret generic nextcloud-db --namespace=nextcloud \
-  --from-literal=db-host="$(terraform output -raw mariadb_fqdn)" \
+  --from-literal=db-host="$(terraform output -raw mysql_fqdn)" \
   --from-literal=db-name="nextcloud" \
   --from-literal=db-username="nextcloudadmin" \
-  --from-literal=db-password="$(terraform output -raw mariadb_admin_password)"
+  --from-literal=db-password="$(terraform output -raw mysql_admin_password)"
 ```
 
 ### Step 5: Deploy Application
@@ -75,7 +75,7 @@ kubectl apply -k .
 
 ## Troubleshooting
 
-Note: This deployment now uses MariaDB which has better availability in westeurope and other regions.
+Note: This deployment now uses MySQL which has better availability in westeurope and other regions.
 
 ### Pod Issues
 

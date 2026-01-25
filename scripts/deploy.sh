@@ -28,8 +28,8 @@ terraform apply tfplan
 # Extract outputs
 RESOURCE_GROUP=$(terraform output -raw resource_group_name)
 AKS_CLUSTER=$(terraform output -raw aks_cluster_name)
-MARIADB_FQDN=$(terraform output -raw mariadb_fqdn)
-MARIADB_PASSWORD=$(terraform output -raw mariadb_admin_password)
+MYSQL_FQDN=$(terraform output -raw mysql_fqdn)
+MYSQL_PASSWORD=$(terraform output -raw mysql_admin_password)
 STORAGE_ACCOUNT_NAME=$(terraform output -raw storage_account_name)
 STORAGE_ACCOUNT_KEY=$(terraform output -raw storage_account_key)
 
@@ -52,7 +52,7 @@ kubectl create secret generic nextcloud-db \
   --from-literal=db-host="$MARIADB_FQDN" \
   --from-literal=db-name="nextcloud" \
   --from-literal=db-username="nextcloudadmin" \
-  --from-literal=db-password="$MARIADB_PASSWORD" \
+  --from-literal=db-password="$MYSQL_PASSWORD" \
   --namespace=nextcloud --dry-run=client -o yaml | kubectl apply -f -
 
 kubectl create secret generic azure-storage \

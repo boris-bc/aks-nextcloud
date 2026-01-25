@@ -40,14 +40,14 @@ variable "vm_size" {
   default     = "Standard_D2s_v3"
 }
 
-variable "mariadb_admin_username" {
-  description = "Administrator username for MariaDB"
+variable "mysql_admin_username" {
+  description = "Administrator username for MySQL"
   type        = string
   default     = "nextcloudadmin"
 }
 
-variable "mariadb_database_name" {
-  description = "Name of the MariaDB database"
+variable "mysql_database_name" {
+  description = "Name of the MySQL database"
   type        = string
   default     = "nextcloud"
 }

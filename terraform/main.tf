@@ -41,17 +41,17 @@ resource "azurerm_subnet" "aks" {
   address_prefixes     = ["10.0.1.0/24"]
 }
 
-# Subnet for MariaDB
-resource "azurerm_subnet" "mariadb" {
-  name                 = "${var.prefix}-mariadb-subnet"
+# Subnet for MySQL
+resource "azurerm_subnet" "mysql" {
+  name                 = "${var.prefix}-mysql-subnet"
   resource_group_name  = azurerm_resource_group.nextcloud.name
   virtual_network_name = azurerm_virtual_network.nextcloud.name
   address_prefixes     = ["10.0.2.0/24"]
   
   delegation {
-    name = "mariadb-delegation"
+    name = "mysql-delegation"
     service_delegation {
-      name = "Microsoft.DBforMariaDB/flexibleServers"
+      name = "Microsoft.DBforMySQL/flexibleServers"
       actions = [
         "Microsoft.Network/virtualNetworks/subnets/join/action",
       ]
@@ -59,17 +59,17 @@ resource "azurerm_subnet" "mariadb" {
   }
 }
 
-# Private DNS Zone for MariaDB
-resource "azurerm_private_dns_zone" "mariadb" {
-  name                = "privatelink.mariadb.database.azure.com"
+# Private DNS Zone for MySQL
+resource "azurerm_private_dns_zone" "mysql" {
+  name                = "privatelink.mysql.database.azure.com"
   resource_group_name = azurerm_resource_group.nextcloud.name
   tags                = var.tags
 }
 
-resource "azurerm_private_dns_zone_virtual_network_link" "mariadb" {
-  name                  = "${var.prefix}-mariadb-vnet-link"
+resource "azurerm_private_dns_zone_virtual_network_link" "mysql" {
+  name                  = "${var.prefix}-mysql-vnet-link"
   resource_group_name   = azurerm_resource_group.nextcloud.name
-  private_dns_zone_name = azurerm_private_dns_zone.mariadb.name
+  private_dns_zone_name = azurerm_private_dns_zone.mysql.name
   virtual_network_id    = azurerm_virtual_network.nextcloud.id
   tags                  = var.tags
 }
@@ -128,48 +128,46 @@ resource "azurerm_storage_share" "nextcloud_data" {
   quota                = 100
 }
 
-# MariaDB Flexible Server
-resource "random_password" "mariadb" {
+# MySQL Flexible Server
+resource "random_password" "mysql" {
   length  = 24
   special = true
 }
 
-resource "azurerm_mariadb_server" "nextcloud" {
-  name                = "${var.prefix}-mariadb"
+resource "azurerm_mysql_flexible_server" "nextcloud" {
+  name                = "${var.prefix}-mysql"
   resource_group_name = azurerm_resource_group.nextcloud.name
   location            = azurerm_resource_group.nextcloud.location
   
-  administrator_login          = var.mariadb_admin_username
-  administrator_login_password = random_password.mariadb.result
+  administrator_login    = var.mysql_admin_username
+  administrator_password = random_password.mysql.result
   
-  sku_name   = "B_Gen5_2"
-  storage_mb = 5120  # 5GB minimum storage with auto-grow enabled
-  version    = "10.3"
+  sku_name   = "B_Standard_B1s"
+  version    = "8.0.21"
   
-  auto_grow_enabled                 = true
-  backup_retention_days             = 7
-  geo_redundant_backup_enabled      = false
-  public_network_access_enabled     = false
-  ssl_enforcement_enabled           = true
-  ssl_minimal_tls_version_enforced  = "TLS1_2"
+  backup_retention_days        = 7
+  geo_redundant_backup_enabled = false
+  
+  delegated_subnet_id = azurerm_subnet.mysql.id
+  private_dns_zone_id = azurerm_private_dns_zone.mysql.id
+  
+  storage {
+    size_gb           = 5  # 5GB minimum storage
+    auto_grow_enabled = true
+  }
+  
+  depends_on = [azurerm_private_dns_zone_virtual_network_link.mysql]
   
   tags = var.tags
 }
 
-resource "azurerm_mariadb_database" "nextcloud" {
-  name                = var.mariadb_database_name
+resource "azurerm_mysql_flexible_database" "nextcloud" {
+  name                = var.mysql_database_name
   resource_group_name = azurerm_resource_group.nextcloud.name
-  server_name         = azurerm_mariadb_server.nextcloud.name
+  server_name         = azurerm_mysql_flexible_server.nextcloud.name
   charset             = "utf8mb4"
   collation           = "utf8mb4_unicode_ci"
 }
 
-resource "azurerm_mariadb_virtual_network_rule" "nextcloud" {
-  name                = "${var.prefix}-mariadb-vnet-rule"
-  resource_group_name = azurerm_resource_group.nextcloud.name
-  server_name         = azurerm_mariadb_server.nextcloud.name
-  subnet_id           = azurerm_subnet.mariadb.id
-}
-
-# Note: MariaDB server uses VNet rules for private access
-# SSL is enforced for secure connections
+# Note: MySQL Flexible Server uses private endpoint via delegated subnet
+# No public access is configured

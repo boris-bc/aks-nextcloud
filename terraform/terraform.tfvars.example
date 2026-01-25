@@ -3,7 +3,7 @@
 
 resource_group_name = "nextcloud-rg"
 
-# Azure region - Using westeurope with MariaDB
+# Azure region - Using westeurope with MySQL
 location            = "westeurope"
 
 prefix              = "nextcloud"
@@ -14,9 +14,9 @@ min_node_count = 1
 max_node_count = 5
 vm_size        = "Standard_D2s_v3"
 
-# MariaDB Configuration
-mariadb_admin_username = "nextcloudadmin"
-mariadb_database_name  = "nextcloud"
+# MySQL Configuration
+mysql_admin_username = "nextcloudadmin"
+mysql_database_name  = "nextcloud"
 
 # Tags
 tags = {

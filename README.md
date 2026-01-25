@@ -71,8 +71,8 @@ After Terraform completes, update the secrets with actual values:
 terraform output -json > outputs.json
 
 # Extract values (example using jq)
-POSTGRES_FQDN=$(terraform output -raw mariadb_fqdn)
-POSTGRES_PASSWORD=$(terraform output -raw mariadb_admin_password)
+POSTGRES_FQDN=$(terraform output -raw mysql_fqdn)
+POSTGRES_PASSWORD=$(terraform output -raw mysql_admin_password)
 STORAGE_ACCOUNT_NAME=$(terraform output -raw storage_account_name)
 STORAGE_ACCOUNT_KEY=$(terraform output -raw storage_account_key)
 
@@ -153,8 +153,8 @@ Key variables in `terraform/variables.tf`:
 - `prefix`: Prefix for resource names
 - `node_count`: Initial number of AKS nodes
 - `vm_size`: VM size for AKS nodes
-- `mariadb_admin_username`: MariaDB admin username
-- `mariadb_database_name`: Database name for Nextcloud
+- `mysql_admin_username`: MariaDB admin username
+- `mysql_database_name`: Database name for Nextcloud
 
 ### Kubernetes Configuration
 
@@ -238,7 +238,7 @@ kubectl get pv,pvc -n nextcloud
 ### Database connection issues
 ```bash
 # Test from a debug pod
-kubectl run -it --rm debug --image=mariadb:14 --restart=Never -- psql -h <mariadb-fqdn> -U nextcloudadmin -d nextcloud
+kubectl run -it --rm debug --image=mysql:14 --restart=Never -- psql -h <mysql-fqdn> -U nextcloudadmin -d nextcloud
 ```
 
 ## Cleanup
