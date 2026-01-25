@@ -89,8 +89,26 @@ kubectl apply -f redis.yaml
 
 # Wait for MySQL to be ready before deploying Nextcloud
 echo ""
-echo "Waiting for MySQL to be ready..."
-kubectl wait --for=condition=ready pod -l app=mysql -n nextcloud --timeout=300s
+echo "Waiting for MySQL StatefulSet to be ready..."
+# First check if the pod exists
+echo "Checking MySQL pod status..."
+kubectl get pods -n nextcloud -l app=mysql
+
+# Wait for the StatefulSet to be ready with better error handling
+if ! kubectl wait --for=condition=ready pod -l app=mysql -n nextcloud --timeout=600s; then
+    echo "ERROR: MySQL pod did not become ready within 10 minutes."
+    echo "Checking MySQL pod status and logs..."
+    kubectl get pods -n nextcloud -l app=mysql
+    kubectl describe pod -n nextcloud -l app=mysql
+    echo ""
+    echo "MySQL pod logs:"
+    kubectl logs -n nextcloud -l app=mysql --tail=50 || true
+    echo ""
+    echo "Please investigate the MySQL pod issue before continuing."
+    exit 1
+fi
+
+echo "MySQL is ready!"
 
 kubectl apply -f nextcloud-deployment.yaml
 kubectl apply -f nextcloud-service.yaml
