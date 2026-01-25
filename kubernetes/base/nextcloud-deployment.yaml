@@ -100,7 +100,7 @@ spec:
           initialDelaySeconds: 30
           periodSeconds: 10
           timeoutSeconds: 5
-          failureThreshold: 60  # 60 failures × 10 sec = 600 sec (10 minutes) for first-time initialization
+          failureThreshold: 120  # 120 failures × 10 sec = 1200 sec (20 minutes) for first-time initialization
         livenessProbe:
           httpGet:
             path: /status.php

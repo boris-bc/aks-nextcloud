@@ -207,16 +207,34 @@ If Nextcloud pods show as Running but READY is 0/1 for extended periods:
 kubectl logs -n nextcloud -l app=nextcloud --tail=100
 ```
 
-2. **Nextcloud first-time initialization can take 5-10 minutes.** The startup probe allows up to 10 minutes (60 failures × 10 sec period = 600 sec).
+2. **Nextcloud first-time initialization can take 10-20 minutes.** The startup probe allows up to 20 minutes (120 failures × 10 sec period = 1200 sec).
 
-3. **If you see "connection refused" errors, the database might not be ready yet.**
+3. **If logs show "Initializing nextcloud..." with no further output:**
+   - Initialization is running silently in the background
+   - Database schema creation can take 10-20 minutes on first run
+   - Wait and continue monitoring logs with `kubectl logs -f -n nextcloud -l app=nextcloud`
 
-4. **Check pod events for health probe failures:**
+4. **Check pod events and restart count:**
 ```bash
-kubectl get events -n nextcloud --field-selector involvedObject.name=<pod-name>
+kubectl get pods -n nextcloud -l app=nextcloud  # Check RESTARTS column
+kubectl get events -n nextcloud --field-selector involvedObject.name=<pod-name> --sort-by='.lastTimestamp'
 ```
 
-5. **If initialization is stuck, check database connectivity from a test pod:**
+5. **If pod is restarting before initialization completes:**
+   - Events will show "Container nextcloud failed startup probe"
+   - Temporarily disable startup probe to let initialization finish:
+   ```bash
+   kubectl patch deployment nextcloud -n nextcloud --type=json -p='[{"op": "remove", "path": "/spec/template/spec/containers/0/startupProbe"}]'
+   ```
+   - Wait 15-20 minutes for initialization
+   - Re-enable probe: `kubectl apply -f kubernetes/base/nextcloud-deployment.yaml`
+
+6. **Verify Apache is running inside the container:**
+```bash
+kubectl exec -n nextcloud -l app=nextcloud -- ps aux | grep apache
+```
+
+7. **If initialization is stuck, check database connectivity from a test pod:**
 ```bash
 kubectl run -it --rm debug --image=mysql:8.0 --restart=Never -n nextcloud -- mysql -h mysql -u nextcloud -p
 # Enter password from: kubectl get secret nextcloud-db -n nextcloud -o jsonpath='{.data.db-password}' | base64 -d
