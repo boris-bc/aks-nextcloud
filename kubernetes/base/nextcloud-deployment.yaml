@@ -38,9 +38,9 @@ spec:
           
           # Add trusted domains using occ command (idempotent - won't duplicate)
           if [ -f /var/www/html/config/config.php ]; then
-            su -s /bin/sh www-data -c "php /var/www/html/occ config:system:set trusted_domains 1 --value='*.azurewebsites.net'"
-            su -s /bin/sh www-data -c "php /var/www/html/occ config:system:set trusted_domains 2 --value='*.westeurope.cloudapp.azure.com'"
-            su -s /bin/sh www-data -c "php /var/www/html/occ config:system:set trusted_domains 3 --value='nextcloud.example.com'"
+            su -s /bin/sh www-data -c "php /var/www/html/occ config:system:set trusted_domains 1 --value='*.azurewebsites.net'" || echo "Warning: Failed to set trusted domain 1"
+            su -s /bin/sh www-data -c "php /var/www/html/occ config:system:set trusted_domains 2 --value='*.westeurope.cloudapp.azure.com'" || echo "Warning: Failed to set trusted domain 2"
+            su -s /bin/sh www-data -c "php /var/www/html/occ config:system:set trusted_domains 3 --value='nextcloud.example.com'" || echo "Warning: Failed to set trusted domain 3"
             echo "Trusted domains configured successfully"
           else
             echo "config.php not found, skipping (will be configured on first boot)"
