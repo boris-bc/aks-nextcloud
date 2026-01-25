@@ -40,6 +40,8 @@ cd terraform
 cp terraform.tfvars.example terraform.tfvars
 
 # Edit terraform.tfvars with your desired configuration
+# IMPORTANT: Set the location variable to a region where PostgreSQL is available
+# Recommended: eastus, westus2, northeurope, uksouth
 vim terraform.tfvars
 
 # Initialize Terraform
@@ -218,6 +220,28 @@ Consider installing:
    - Enable SSL connections
 
 ## Troubleshooting
+
+### Terraform deployment errors
+
+#### LocationIsOfferRestricted error for PostgreSQL
+If you encounter an error like:
+```
+Error: creating Flexible Server ... Status: "LocationIsOfferRestricted"
+Message: "Subscriptions are restricted from provisioning in location 'westeurope'..."
+```
+
+**Solution**: Your Azure subscription has restrictions on PostgreSQL Flexible Server in that region. 
+
+1. Change the `location` variable in `terraform/terraform.tfvars` to a different region:
+   ```hcl
+   location = "eastus"  # or try: westus2, northeurope, uksouth
+   ```
+
+2. Run `terraform destroy` to clean up any partial deployment, then `terraform apply` again
+
+3. Alternatively, request a quota increase following the link in the error message
+
+**Note**: The default region has been changed to `eastus` which has better availability.
 
 ### Check pod status
 ```bash

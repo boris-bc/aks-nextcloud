@@ -2,7 +2,12 @@
 # Copy this file to terraform.tfvars and customize the values
 
 resource_group_name = "nextcloud-rg"
-location            = "westeurope"
+
+# Azure region - Change this if you encounter PostgreSQL provisioning restrictions
+# Recommended regions: eastus, westus2, northeurope, uksouth
+# If you get "LocationIsOfferRestricted" error, try a different region or request quota increase
+location            = "eastus"
+
 prefix              = "nextcloud"
 
 # AKS Configuration

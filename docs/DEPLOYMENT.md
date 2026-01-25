@@ -75,6 +75,25 @@ kubectl apply -k .
 
 ## Troubleshooting
 
+### PostgreSQL Location Restrictions
+
+If Terraform fails with a "LocationIsOfferRestricted" error:
+
+```bash
+# Edit terraform.tfvars and change the location
+# Recommended regions: eastus, westus2, northeurope, uksouth
+cd terraform
+vim terraform.tfvars  # Change location = "eastus"
+
+# Clean up partial deployment
+terraform destroy
+
+# Try again
+terraform apply
+```
+
+### Pod Issues
+
 Check pod logs:
 ```bash
 kubectl logs -f deployment/nextcloud -n nextcloud

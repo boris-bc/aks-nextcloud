@@ -5,9 +5,9 @@ variable "resource_group_name" {
 }
 
 variable "location" {
-  description = "Azure region for resources"
+  description = "Azure region for resources. Note: Some subscriptions may have restrictions on PostgreSQL Flexible Server availability in certain regions. If you encounter 'LocationIsOfferRestricted' errors, try eastus, westus2, or northeurope."
   type        = string
-  default     = "westeurope"
+  default     = "eastus"
 }
 
 variable "prefix" {
