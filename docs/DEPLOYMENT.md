@@ -95,3 +95,109 @@ kubectl get all -n nextcloud
 cd scripts
 ./cleanup.sh
 ```
+
+## Troubleshooting
+
+### Nextcloud Pods Crashing
+
+If Nextcloud pods are in CrashLoopBackOff state:
+
+1. **Check if MySQL is running:**
+```bash
+kubectl get pods -n nextcloud -l app=mysql
+kubectl get statefulset -n nextcloud
+```
+
+2. **If MySQL pod doesn't exist, deploy it:**
+```bash
+kubectl apply -f kubernetes/base/mysql-statefulset.yaml
+```
+
+3. **Wait for MySQL to be ready:**
+```bash
+kubectl wait --for=condition=ready pod -l app=mysql -n nextcloud --timeout=300s
+```
+
+4. **Check MySQL logs:**
+```bash
+kubectl logs -n nextcloud -l app=mysql
+```
+
+5. **Restart Nextcloud after MySQL is ready:**
+```bash
+kubectl rollout restart deployment/nextcloud -n nextcloud
+```
+
+### Database Connection Issues
+
+If Nextcloud can't connect to MySQL:
+
+1. **Verify secrets are correct:**
+```bash
+kubectl get secret nextcloud-db -n nextcloud -o yaml
+```
+
+2. **Test database connectivity from a debug pod:**
+```bash
+kubectl run -it --rm debug --image=mysql:8.0 --restart=Never -n nextcloud -- mysql -h mysql -u nextcloud -p
+```
+
+3. **Check MySQL service:**
+```bash
+kubectl get svc mysql -n nextcloud
+```
+
+### MySQL StatefulSet Issues
+
+If MySQL pod won't start:
+
+1. **Check persistent volume claim:**
+```bash
+kubectl get pvc -n nextcloud
+```
+
+2. **Check MySQL logs:**
+```bash
+kubectl logs -n nextcloud mysql-0
+```
+
+3. **Describe the MySQL pod:**
+```bash
+kubectl describe pod mysql-0 -n nextcloud
+```
+
+### Pods Stuck in Pending State
+
+If pods remain in Pending state:
+
+1. **Check node availability:**
+```bash
+kubectl get nodes
+```
+
+2. **Describe the pending pod:**
+```bash
+kubectl describe pod <pod-name> -n nextcloud
+```
+
+3. **Check for resource constraints or PVC binding issues**
+
+### Re-deployment
+
+If you need to completely redeploy:
+
+1. **Delete all Kubernetes resources:**
+```bash
+kubectl delete namespace nextcloud
+```
+
+2. **Recreate namespace:**
+```bash
+kubectl create namespace nextcloud
+```
+
+3. **Run deployment script again:**
+```bash
+cd scripts
+./deploy.sh
+```

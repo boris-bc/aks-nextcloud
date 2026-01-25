@@ -84,7 +84,14 @@ echo "Step 5: Deploying Nextcloud to Kubernetes..."
 cd ../kubernetes/base
 kubectl apply -f configmap.yaml
 kubectl apply -f pvc.yaml
+kubectl apply -f mysql-statefulset.yaml
 kubectl apply -f redis.yaml
+
+# Wait for MySQL to be ready before deploying Nextcloud
+echo ""
+echo "Waiting for MySQL to be ready..."
+kubectl wait --for=condition=ready pod -l app=mysql -n nextcloud --timeout=300s
+
 kubectl apply -f nextcloud-deployment.yaml
 kubectl apply -f nextcloud-service.yaml
 
@@ -93,7 +100,7 @@ echo "================================"
 echo "Deployment completed!"
 echo "================================"
 echo ""
-echo "Waiting for LoadBalancer IP..."
+echo "Waiting for Nextcloud pods to be ready..."
 kubectl wait --for=condition=ready pod -l app=nextcloud -n nextcloud --timeout=300s || true
 
 EXTERNAL_IP=""
