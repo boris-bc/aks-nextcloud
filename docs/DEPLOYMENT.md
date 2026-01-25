@@ -137,7 +137,7 @@ If Nextcloud pods show as Running but READY is 0/1 for extended periods:
 kubectl logs -n nextcloud -l app=nextcloud --tail=100
 ```
 
-2. **Nextcloud first-time initialization can take 5-10 minutes.** The startup probe allows up to 10 minutes (60 failures * 10s period).
+2. **Nextcloud first-time initialization can take 5-10 minutes.** The startup probe allows up to 10 minutes (60 failures × 10 sec period = 600 sec).
 
 3. **If you see "connection refused" errors, the database might not be ready yet.**
 
