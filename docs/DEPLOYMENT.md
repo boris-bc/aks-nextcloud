@@ -73,30 +73,100 @@ cd ../kubernetes/overlays/prod
 kubectl apply -k .
 ```
 
-## Troubleshooting
+## Scaling Nextcloud
 
-Note: This deployment now uses MySQL which has better availability in westeurope and other regions.
+**Important:** The deployment starts with **1 replica** to avoid concurrent database initialization conflicts.
 
-### Pod Issues
+### After Initial Deployment
 
-Check pod logs:
+Once Nextcloud is fully initialized and running (all pods show READY 1/1), you can scale to multiple replicas:
+
 ```bash
-kubectl logs -f deployment/nextcloud -n nextcloud
+# Scale to 2 replicas (default for base)
+kubectl scale deployment nextcloud -n nextcloud --replicas=2
+
+# Or scale to 3 replicas (recommended for prod)
+kubectl scale deployment nextcloud -n nextcloud --replicas=3
 ```
 
-Check resource status:
+### Why Start with 1 Replica?
+
+Nextcloud's initialization process:
+- Creates database schema and tables on first run
+- Uses file locking to prevent concurrent initialization
+- Multiple pods starting simultaneously causes "flock: Permission denied" errors
+- After initialization, Nextcloud supports multiple replicas without issues
+
+### Verifying Initialization
+
+Check if Nextcloud has completed initialization:
+
 ```bash
-kubectl get all -n nextcloud
+# Check pod status - should show READY 1/1
+kubectl get pods -n nextcloud -l app=nextcloud
+
+# Check logs - should show "Nextcloud is already installed"
+kubectl logs -n nextcloud -l app=nextcloud --tail=20
+
+# Once you see "Nextcloud is already installed", it's safe to scale up
+kubectl scale deployment nextcloud -n nextcloud --replicas=2
 ```
 
 ## Cleanup
+
+To remove all deployed resources:
 
 ```bash
 cd scripts
 ./cleanup.sh
 ```
 
+Or manually:
+
+```bash
+# Delete Kubernetes resources
+kubectl delete namespace nextcloud
+
+# Delete Azure infrastructure
+cd terraform
+terraform destroy
+```
+
 ## Troubleshooting
+
+Note: This deployment uses containerized MySQL which works in all Azure regions without subscription restrictions.
+
+### Common Issues
+
+#### Concurrent Initialization Conflicts
+
+If you see errors like "flock: Permission denied" or "Another process is initializing Nextcloud":
+
+**Cause:** Multiple Nextcloud pods trying to initialize the database simultaneously.
+
+**Solution:**
+1. **Delete all Nextcloud pods to stop conflicting initialization:**
+```bash
+kubectl delete pods -n nextcloud -l app=nextcloud
+```
+
+2. **Ensure only 1 replica is configured during first deployment:**
+```bash
+kubectl scale deployment nextcloud -n nextcloud --replicas=1
+```
+
+3. **Wait for initialization to complete** (5-10 minutes):
+```bash
+kubectl logs -f -n nextcloud -l app=nextcloud
+# Wait until you see "Nextcloud is already installed"
+```
+
+4. **Once initialized, scale to desired replicas:**
+```bash
+kubectl scale deployment nextcloud -n nextcloud --replicas=2
+```
+
+**Prevention:** The base deployment now starts with 1 replica by default to avoid this issue.
 
 ### Nextcloud Pods Crashing
 
@@ -146,11 +216,13 @@ kubectl logs -n nextcloud -l app=nextcloud --tail=100
 kubectl get events -n nextcloud --field-selector involvedObject.name=<pod-name>
 ```
 
-5. **If initialization is stuck, check database connectivity:**
+5. **If initialization is stuck, check database connectivity from a test pod:**
 ```bash
-kubectl exec -it -n nextcloud deployment/nextcloud -- mysql -h mysql -u nextcloud -p
-# Enter the password from the secret
+kubectl run -it --rm debug --image=mysql:8.0 --restart=Never -n nextcloud -- mysql -h mysql.nextcloud.svc.cluster.local -u nextcloud -p
+# Enter password from: kubectl get secret nextcloud-db -n nextcloud -o jsonpath='{.data.db-password}' | base64 -d
 ```
+
+**Note:** The `mysql` command is not available in Nextcloud pods. Use a separate MySQL debug pod as shown above.
 
 ### Database Connection Issues
 

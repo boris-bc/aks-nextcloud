@@ -4,7 +4,7 @@ metadata:
   name: nextcloud
   namespace: nextcloud
 spec:
-  replicas: 2
+  replicas: 1  # Start with 1 replica to avoid concurrent initialization conflicts
   selector:
     matchLabels:
       app: nextcloud

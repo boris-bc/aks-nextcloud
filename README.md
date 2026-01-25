@@ -137,6 +137,17 @@ kubectl get service nextcloud -n nextcloud
 # Access Nextcloud at http://<EXTERNAL-IP>
 ```
 
+**Important:** After first deployment, wait for Nextcloud initialization to complete (5-10 minutes), then scale to multiple replicas if needed:
+
+```bash
+# Check if Nextcloud is initialized
+kubectl logs -n nextcloud -l app=nextcloud --tail=20
+# Look for "Nextcloud is already installed"
+
+# Scale to 2 replicas (after initialization completes)
+kubectl scale deployment nextcloud -n nextcloud --replicas=2
+```
+
 For production with Ingress:
 1. Install an Ingress controller (e.g., NGINX Ingress Controller)
 2. Install cert-manager for TLS certificates
