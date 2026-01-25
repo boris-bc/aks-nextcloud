@@ -100,7 +100,6 @@ resource "azurerm_kubernetes_cluster" "nextcloud" {
     load_balancer_sku = "standard"
     service_cidr      = "10.1.0.0/16"
     dns_service_ip    = "10.1.0.10"
-    docker_bridge_cidr = "172.17.0.1/16"
   }
   
   tags = var.tags
@@ -108,8 +107,13 @@ resource "azurerm_kubernetes_cluster" "nextcloud" {
 
 # Storage Account for Nextcloud data
 # Note: Storage account names must be 3-24 characters, lowercase letters and numbers only
+# Adding random suffix to ensure global uniqueness
+resource "random_id" "storage" {
+  byte_length = 4
+}
+
 resource "azurerm_storage_account" "nextcloud" {
-  name                     = lower(substr(replace(var.prefix, "-", ""), 0, 20))
+  name                     = lower(substr("${replace(var.prefix, "-", "")}${random_id.storage.hex}", 0, 24))
   resource_group_name      = azurerm_resource_group.nextcloud.name
   location                 = azurerm_resource_group.nextcloud.location
   account_tier             = "Standard"
@@ -139,7 +143,8 @@ resource "azurerm_postgresql_flexible_server" "nextcloud" {
   administrator_password = random_password.postgres.result
   storage_mb             = 32768
   sku_name               = "B_Standard_B1ms"
-  zone                   = "1"
+  # Removed zone parameter to use default availability (not zone-specific)
+  # This avoids zone availability issues in regions where specific zones may not be available
   
   # Security: Disable public network access - only accessible from VNet
   public_network_access_enabled = false
