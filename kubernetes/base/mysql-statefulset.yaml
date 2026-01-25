@@ -77,14 +77,10 @@ spec:
         readinessProbe:
           exec:
             command:
-            - mysql
+            - mysqladmin
+            - ping
             - -h
             - localhost
-            - -u
-            - root
-            - -p${MYSQL_ROOT_PASSWORD}
-            - -e
-            - SELECT 1
           initialDelaySeconds: 10
           periodSeconds: 5
           timeoutSeconds: 2

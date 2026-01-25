@@ -9,27 +9,28 @@ This document describes the architecture of the Nextcloud deployment on Azure Ku
 1. **Resource Group**: Container for all resources
 2. **Virtual Network**: Isolated network (10.0.0.0/16)
    - AKS Subnet (10.0.1.0/24)
-   - MySQL Subnet (10.0.2.0/24)
 3. **AKS Cluster**: Kubernetes orchestration
    - Autoscaling: 1-5 nodes
    - VM Size: Standard_D2s_v3
-4. **MySQL StatefulSet**: Database backend
-   - Version: 14
-   - Storage: 32 GB
-5. **Storage Account**: Azure Files for persistent data
+4. **Storage Account**: Azure Files for persistent data
    - 100 GB file share
 
 ### Kubernetes Resources
 
 1. **Namespace**: nextcloud
-2. **Deployments**:
+2. **StatefulSets**:
+   - MySQL (1 replica) with 20GB persistent volume
+3. **Deployments**:
    - Nextcloud (2 replicas)
    - Redis (1 replica)
-3. **Services**:
+4. **Services**:
    - LoadBalancer for external access
    - ClusterIP for Redis
-4. **Storage**: PVC with Azure Files
-5. **Configuration**: ConfigMaps and Secrets
+   - Headless service for MySQL StatefulSet
+5. **Storage**: 
+   - PVC with Azure Files for Nextcloud data
+   - PVC with managed-csi for MySQL data (20GB)
+6. **Configuration**: ConfigMaps and Secrets
 
 ## Data Flow
 
@@ -54,6 +55,7 @@ This document describes the architecture of the Nextcloud deployment on Azure Ku
 
 ## High Availability
 
-- Multiple pod replicas
-- MySQL automated backups
-- Zone-redundant storage option
+- Multiple Nextcloud pod replicas
+- MySQL StatefulSet with persistent storage
+- Use Velero for backup/restore
+- Zone-redundant storage option for Azure Files

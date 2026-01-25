@@ -239,7 +239,7 @@ kubectl get pv,pvc -n nextcloud
 ### Database connection issues
 ```bash
 # Test from a debug pod
-kubectl run -it --rm debug --image=mysql:14 --restart=Never -- psql -h <mysql-fqdn> -U nextcloudadmin -d nextcloud
+kubectl run -it --rm debug --image=mysql:8.0 --restart=Never -n nextcloud -- mysql -h mysql -u nextcloud -p
 ```
 
 ## Cleanup
