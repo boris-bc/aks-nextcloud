@@ -7,12 +7,13 @@ This repository contains infrastructure as code (IaC) for deploying Nextcloud on
 The infrastructure includes:
 
 - **Azure Kubernetes Service (AKS)**: Container orchestration platform
-- **Azure MariaDB Server**: Database backend for Nextcloud
+- **MySQL (containerized)**: Database running as StatefulSet within AKS cluster
 - **Azure Storage Account**: Persistent storage for Nextcloud data using Azure Files
 - **Azure Virtual Network**: Network isolation and security
 - **Redis**: In-memory cache for improved performance
 - **Kubernetes Resources**: 
   - Nextcloud application deployment
+  - MySQL StatefulSet with persistent storage
   - Redis deployment for caching
   - Persistent Volume Claims for data storage
   - Services and Ingress for external access
@@ -149,12 +150,12 @@ For production with Ingress:
 Key variables in `terraform/variables.tf`:
 
 - `resource_group_name`: Azure resource group name
-- `location`: Azure region (e.g., westeurope, eastus)
+- `location`: Azure region (e.g., westeurope, eastus) - works in any region with containerized MySQL
 - `prefix`: Prefix for resource names
 - `node_count`: Initial number of AKS nodes
 - `vm_size`: VM size for AKS nodes
-- `mysql_admin_username`: MariaDB admin username
-- `mysql_database_name`: Database name for Nextcloud
+
+Note: MySQL is deployed as a containerized StatefulSet within AKS, so no database-specific Terraform variables are needed.
 
 ### Kubernetes Configuration
 
@@ -193,7 +194,7 @@ Consider installing:
 
 ## Backup and Disaster Recovery
 
-1. **Database Backups**: Azure MariaDB Server provides automated backups
+1. **Database Backups**: MySQL data is stored in Kubernetes persistent volumes. Use Velero or Azure Backup for Kubernetes for backup/restore
 2. **File Backups**: Use Azure Storage snapshots or backup solutions
 3. **Kubernetes Resources**: Store manifests in version control (this repository)
 
@@ -205,7 +206,7 @@ Consider installing:
    
 2. **Network Security**:
    - Configure Network Security Groups (NSGs)
-   - Use Azure Private Link for MariaDB
+   - MySQL is internal to the cluster (not publicly accessible)
    - Enable Pod Security Standards
 
 3. **TLS/SSL**:
@@ -221,7 +222,7 @@ Consider installing:
 
 ### Terraform deployment errors
 
-Note: This deployment now uses MariaDB which has better availability across Azure regions including westeurope.
+Note: This deployment uses containerized MySQL which works in any Azure region without subscription restrictions.
 
 ### Check pod status
 ```bash

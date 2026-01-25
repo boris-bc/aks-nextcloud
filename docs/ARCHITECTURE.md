@@ -13,7 +13,7 @@ This document describes the architecture of the Nextcloud deployment on Azure Ku
 3. **AKS Cluster**: Kubernetes orchestration
    - Autoscaling: 1-5 nodes
    - VM Size: Standard_D2s_v3
-4. **MySQL Flexible Server**: Database backend
+4. **MySQL StatefulSet**: Database backend
    - Version: 14
    - Storage: 32 GB
 5. **Storage Account**: Azure Files for persistent data

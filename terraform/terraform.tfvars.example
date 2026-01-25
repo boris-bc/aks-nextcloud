@@ -3,7 +3,7 @@
 
 resource_group_name = "nextcloud-rg"
 
-# Azure region - Using westeurope with MySQL
+# Azure region - MySQL is deployed as a container, works in any region
 location            = "westeurope"
 
 prefix              = "nextcloud"
@@ -13,10 +13,6 @@ node_count     = 2
 min_node_count = 1
 max_node_count = 5
 vm_size        = "Standard_D2s_v3"
-
-# MySQL Configuration
-mysql_admin_username = "nextcloudadmin"
-mysql_database_name  = "nextcloud"
 
 # Tags
 tags = {

@@ -40,18 +40,6 @@ variable "vm_size" {
   default     = "Standard_D2s_v3"
 }
 
-variable "mysql_admin_username" {
-  description = "Administrator username for MySQL"
-  type        = string
-  default     = "nextcloudadmin"
-}
-
-variable "mysql_database_name" {
-  description = "Name of the MySQL database"
-  type        = string
-  default     = "nextcloud"
-}
-
 variable "tags" {
   description = "Tags to apply to all resources"
   type        = map(string)
