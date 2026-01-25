@@ -5,7 +5,7 @@ metadata:
   namespace: nextcloud
 data:
   MYSQL_DATABASE: "nextcloud"
-  NEXTCLOUD_TRUSTED_DOMAINS: "*.azurewebsites.net *.westeurope.cloudapp.azure.com nextcloud.example.com"
+  NEXTCLOUD_TRUSTED_DOMAINS: "*.westeurope.cloudapp.azure.com"
   REDIS_HOST: "redis"
   REDIS_HOST_PORT: "6379"
   PHP_MEMORY_LIMIT: "512M"
