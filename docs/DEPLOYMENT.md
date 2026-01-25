@@ -241,11 +241,11 @@ If Nextcloud pods show as Running but READY is 0/1 for extended periods:
 kubectl logs -n nextcloud -l app=nextcloud --tail=100
 ```
 
-2. **Nextcloud first-time initialization can take 10-20 minutes.** The startup probe allows up to 20 minutes (120 failures × 10 sec period = 1200 sec).
+2. **Nextcloud first-time initialization takes 2-5 minutes with optimized storage.** The startup probe allows up to 10 minutes (60 failures × 10 sec period = 600 sec).
 
 3. **If logs show "Initializing nextcloud..." with no further output:**
    - Initialization is running silently in the background
-   - Database schema creation can take 10-20 minutes on first run
+   - Database schema creation typically takes 2-5 minutes on first run
    - Wait and continue monitoring logs with `kubectl logs -f -n nextcloud -l app=nextcloud`
 
 4. **Check pod events and restart count:**
@@ -254,15 +254,13 @@ kubectl get pods -n nextcloud -l app=nextcloud  # Check RESTARTS column
 kubectl get events -n nextcloud --field-selector involvedObject.name=<pod-name> --sort-by='.lastTimestamp'
 ```
 
-5. **If pod is restarting before initialization completes:**
+5. **If pod is restarting before initialization completes (rare with optimized storage):**
    - Events will show "Container nextcloud failed startup probe"
-   - Temporarily disable startup probe to let initialization finish:
-   ```bash
-   # Note: This assumes nextcloud is the first container (index 0) in the pod spec
-   kubectl patch deployment nextcloud -n nextcloud --type=json -p='[{"op": "remove", "path": "/spec/template/spec/containers/0/startupProbe"}]'
-   ```
-   - Wait 15-20 minutes for initialization
-   - Re-enable probe: `kubectl apply -f kubernetes/base/nextcloud-deployment.yaml`
+   - The startup probe allows 10 minutes (600 seconds)
+   - With optimized storage, initialization typically completes in 2-5 minutes
+   - If initialization takes longer, you can increase `failureThreshold` in `nextcloud-deployment.yaml` (e.g., from 60 to 90 for 15 minutes)
+   - Re-apply after editing: `kubectl apply -f kubernetes/base/nextcloud-deployment.yaml`
+   - Delete pods to pick up changes: `kubectl delete pods -n nextcloud -l app=nextcloud`
 
 6. **Verify Apache is running inside the container:**
 ```bash
