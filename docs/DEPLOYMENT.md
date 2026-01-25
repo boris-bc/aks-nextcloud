@@ -60,10 +60,10 @@ kubectl get nodes
 
 ```bash
 kubectl create secret generic nextcloud-db --namespace=nextcloud \
-  --from-literal=db-host="$(terraform output -raw postgres_fqdn)" \
+  --from-literal=db-host="$(terraform output -raw mariadb_fqdn)" \
   --from-literal=db-name="nextcloud" \
   --from-literal=db-username="nextcloudadmin" \
-  --from-literal=db-password="$(terraform output -raw postgres_admin_password)"
+  --from-literal=db-password="$(terraform output -raw mariadb_admin_password)"
 ```
 
 ### Step 5: Deploy Application
@@ -75,22 +75,7 @@ kubectl apply -k .
 
 ## Troubleshooting
 
-### PostgreSQL Location Restrictions
-
-If Terraform fails with a "LocationIsOfferRestricted" error:
-
-```bash
-# Edit terraform.tfvars and change the location
-# Recommended regions: eastus, westus2, northeurope, uksouth
-cd terraform
-vim terraform.tfvars  # Change location = "eastus"
-
-# Clean up partial deployment
-terraform destroy
-
-# Try again
-terraform apply
-```
+Note: This deployment now uses MariaDB which has better availability in westeurope and other regions.
 
 ### Pod Issues
 

@@ -4,7 +4,7 @@ metadata:
   name: nextcloud-config
   namespace: nextcloud
 data:
-  POSTGRES_DB: "nextcloud"
+  MYSQL_DATABASE: "nextcloud"
   NEXTCLOUD_TRUSTED_DOMAINS: "*.azurewebsites.net nextcloud.example.com"
   REDIS_HOST: "redis"
   REDIS_HOST_PORT: "6379"

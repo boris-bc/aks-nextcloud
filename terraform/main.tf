@@ -41,17 +41,17 @@ resource "azurerm_subnet" "aks" {
   address_prefixes     = ["10.0.1.0/24"]
 }
 
-# Subnet for PostgreSQL
-resource "azurerm_subnet" "postgres" {
-  name                 = "${var.prefix}-postgres-subnet"
+# Subnet for MariaDB
+resource "azurerm_subnet" "mariadb" {
+  name                 = "${var.prefix}-mariadb-subnet"
   resource_group_name  = azurerm_resource_group.nextcloud.name
   virtual_network_name = azurerm_virtual_network.nextcloud.name
   address_prefixes     = ["10.0.2.0/24"]
   
   delegation {
-    name = "postgres-delegation"
+    name = "mariadb-delegation"
     service_delegation {
-      name = "Microsoft.DBforPostgreSQL/flexibleServers"
+      name = "Microsoft.DBforMariaDB/flexibleServers"
       actions = [
         "Microsoft.Network/virtualNetworks/subnets/join/action",
       ]
@@ -59,17 +59,17 @@ resource "azurerm_subnet" "postgres" {
   }
 }
 
-# Private DNS Zone for PostgreSQL
-resource "azurerm_private_dns_zone" "postgres" {
-  name                = "privatelink.postgres.database.azure.com"
+# Private DNS Zone for MariaDB
+resource "azurerm_private_dns_zone" "mariadb" {
+  name                = "privatelink.mariadb.database.azure.com"
   resource_group_name = azurerm_resource_group.nextcloud.name
   tags                = var.tags
 }
 
-resource "azurerm_private_dns_zone_virtual_network_link" "postgres" {
-  name                  = "${var.prefix}-postgres-vnet-link"
+resource "azurerm_private_dns_zone_virtual_network_link" "mariadb" {
+  name                  = "${var.prefix}-mariadb-vnet-link"
   resource_group_name   = azurerm_resource_group.nextcloud.name
-  private_dns_zone_name = azurerm_private_dns_zone.postgres.name
+  private_dns_zone_name = azurerm_private_dns_zone.mariadb.name
   virtual_network_id    = azurerm_virtual_network.nextcloud.id
   tags                  = var.tags
 }
@@ -128,40 +128,48 @@ resource "azurerm_storage_share" "nextcloud_data" {
   quota                = 100
 }
 
-# PostgreSQL Flexible Server
-resource "random_password" "postgres" {
+# MariaDB Flexible Server
+resource "random_password" "mariadb" {
   length  = 24
   special = true
 }
 
-resource "azurerm_postgresql_flexible_server" "nextcloud" {
-  name                   = "${var.prefix}-postgres"
-  resource_group_name    = azurerm_resource_group.nextcloud.name
-  location               = azurerm_resource_group.nextcloud.location
-  version                = "14"
-  administrator_login    = var.postgres_admin_username
-  administrator_password = random_password.postgres.result
-  storage_mb             = 32768
-  sku_name               = "B_Standard_B1ms"
-  # Removed zone parameter to use default availability (not zone-specific)
-  # This avoids zone availability issues in regions where specific zones may not be available
+resource "azurerm_mariadb_server" "nextcloud" {
+  name                = "${var.prefix}-mariadb"
+  resource_group_name = azurerm_resource_group.nextcloud.name
+  location            = azurerm_resource_group.nextcloud.location
   
-  # Security: Disable public network access - only accessible from VNet
-  public_network_access_enabled = false
-  delegated_subnet_id           = azurerm_subnet.postgres.id
-  private_dns_zone_id           = azurerm_private_dns_zone.postgres.id
+  administrator_login          = var.mariadb_admin_username
+  administrator_login_password = random_password.mariadb.result
   
-  depends_on = [azurerm_private_dns_zone_virtual_network_link.postgres]
+  sku_name   = "B_Gen5_2"
+  storage_mb = 51200
+  version    = "10.3"
+  
+  auto_grow_enabled                 = true
+  backup_retention_days             = 7
+  geo_redundant_backup_enabled      = false
+  public_network_access_enabled     = false
+  ssl_enforcement_enabled           = true
+  ssl_minimal_tls_version_enforced  = "TLS1_2"
   
   tags = var.tags
 }
 
-resource "azurerm_postgresql_flexible_server_database" "nextcloud" {
-  name      = var.postgres_database_name
-  server_id = azurerm_postgresql_flexible_server.nextcloud.id
-  collation = "en_US.utf8"
-  charset   = "UTF8"
+resource "azurerm_mariadb_database" "nextcloud" {
+  name                = var.mariadb_database_name
+  resource_group_name = azurerm_resource_group.nextcloud.name
+  server_name         = azurerm_mariadb_server.nextcloud.name
+  charset             = "utf8mb4"
+  collation           = "utf8mb4_unicode_ci"
 }
 
-# Note: Firewall rules are not needed when public_network_access_enabled = false
-# The database is only accessible from within the VNet via private endpoint
+resource "azurerm_mariadb_virtual_network_rule" "nextcloud" {
+  name                = "${var.prefix}-mariadb-vnet-rule"
+  resource_group_name = azurerm_resource_group.nextcloud.name
+  server_name         = azurerm_mariadb_server.nextcloud.name
+  subnet_id           = azurerm_subnet.mariadb.id
+}
+
+# Note: MariaDB server uses VNet rules for private access
+# SSL is enforced for secure connections

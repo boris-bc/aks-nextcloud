@@ -5,9 +5,9 @@ variable "resource_group_name" {
 }
 
 variable "location" {
-  description = "Azure region for resources. Note: Some subscriptions may have restrictions on PostgreSQL Flexible Server availability in certain regions. If you encounter 'LocationIsOfferRestricted' errors, try eastus, westus2, or northeurope."
+  description = "Azure region for resources"
   type        = string
-  default     = "eastus"
+  default     = "westeurope"
 }
 
 variable "prefix" {
@@ -40,14 +40,14 @@ variable "vm_size" {
   default     = "Standard_D2s_v3"
 }
 
-variable "postgres_admin_username" {
-  description = "Administrator username for PostgreSQL"
+variable "mariadb_admin_username" {
+  description = "Administrator username for MariaDB"
   type        = string
   default     = "nextcloudadmin"
 }
 
-variable "postgres_database_name" {
-  description = "Name of the PostgreSQL database"
+variable "mariadb_database_name" {
+  description = "Name of the MariaDB database"
   type        = string
   default     = "nextcloud"
 }

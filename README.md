@@ -7,7 +7,7 @@ This repository contains infrastructure as code (IaC) for deploying Nextcloud on
 The infrastructure includes:
 
 - **Azure Kubernetes Service (AKS)**: Container orchestration platform
-- **Azure PostgreSQL Flexible Server**: Database backend for Nextcloud
+- **Azure MariaDB Server**: Database backend for Nextcloud
 - **Azure Storage Account**: Persistent storage for Nextcloud data using Azure Files
 - **Azure Virtual Network**: Network isolation and security
 - **Redis**: In-memory cache for improved performance
@@ -40,8 +40,6 @@ cd terraform
 cp terraform.tfvars.example terraform.tfvars
 
 # Edit terraform.tfvars with your desired configuration
-# IMPORTANT: Set the location variable to a region where PostgreSQL is available
-# Recommended: eastus, westus2, northeurope, uksouth
 vim terraform.tfvars
 
 # Initialize Terraform
@@ -73,8 +71,8 @@ After Terraform completes, update the secrets with actual values:
 terraform output -json > outputs.json
 
 # Extract values (example using jq)
-POSTGRES_FQDN=$(terraform output -raw postgres_fqdn)
-POSTGRES_PASSWORD=$(terraform output -raw postgres_admin_password)
+POSTGRES_FQDN=$(terraform output -raw mariadb_fqdn)
+POSTGRES_PASSWORD=$(terraform output -raw mariadb_admin_password)
 STORAGE_ACCOUNT_NAME=$(terraform output -raw storage_account_name)
 STORAGE_ACCOUNT_KEY=$(terraform output -raw storage_account_key)
 
@@ -155,8 +153,8 @@ Key variables in `terraform/variables.tf`:
 - `prefix`: Prefix for resource names
 - `node_count`: Initial number of AKS nodes
 - `vm_size`: VM size for AKS nodes
-- `postgres_admin_username`: PostgreSQL admin username
-- `postgres_database_name`: Database name for Nextcloud
+- `mariadb_admin_username`: MariaDB admin username
+- `mariadb_database_name`: Database name for Nextcloud
 
 ### Kubernetes Configuration
 
@@ -195,7 +193,7 @@ Consider installing:
 
 ## Backup and Disaster Recovery
 
-1. **Database Backups**: Azure PostgreSQL Flexible Server provides automated backups
+1. **Database Backups**: Azure MariaDB Server provides automated backups
 2. **File Backups**: Use Azure Storage snapshots or backup solutions
 3. **Kubernetes Resources**: Store manifests in version control (this repository)
 
@@ -207,7 +205,7 @@ Consider installing:
    
 2. **Network Security**:
    - Configure Network Security Groups (NSGs)
-   - Use Azure Private Link for PostgreSQL
+   - Use Azure Private Link for MariaDB
    - Enable Pod Security Standards
 
 3. **TLS/SSL**:
@@ -223,25 +221,7 @@ Consider installing:
 
 ### Terraform deployment errors
 
-#### LocationIsOfferRestricted error for PostgreSQL
-If you encounter an error like:
-```
-Error: creating Flexible Server ... Status: "LocationIsOfferRestricted"
-Message: "Subscriptions are restricted from provisioning in location 'westeurope'..."
-```
-
-**Solution**: Your Azure subscription has restrictions on PostgreSQL Flexible Server in that region. 
-
-1. Change the `location` variable in `terraform/terraform.tfvars` to a different region:
-   ```hcl
-   location = "eastus"  # or try: westus2, northeurope, uksouth
-   ```
-
-2. Run `terraform destroy` to clean up any partial deployment, then `terraform apply` again
-
-3. Alternatively, request a quota increase following the link in the error message
-
-**Note**: The default region has been changed to `eastus` which has better availability.
+Note: This deployment now uses MariaDB which has better availability across Azure regions including westeurope.
 
 ### Check pod status
 ```bash
@@ -258,7 +238,7 @@ kubectl get pv,pvc -n nextcloud
 ### Database connection issues
 ```bash
 # Test from a debug pod
-kubectl run -it --rm debug --image=postgres:14 --restart=Never -- psql -h <postgres-fqdn> -U nextcloudadmin -d nextcloud
+kubectl run -it --rm debug --image=mariadb:14 --restart=Never -- psql -h <mariadb-fqdn> -U nextcloudadmin -d nextcloud
 ```
 
 ## Cleanup

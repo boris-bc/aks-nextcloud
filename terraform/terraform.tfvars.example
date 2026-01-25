@@ -3,10 +3,8 @@
 
 resource_group_name = "nextcloud-rg"
 
-# Azure region - Change this if you encounter PostgreSQL provisioning restrictions
-# Recommended regions: eastus, westus2, northeurope, uksouth
-# If you get "LocationIsOfferRestricted" error, try a different region or request quota increase
-location            = "eastus"
+# Azure region - Using westeurope with MariaDB
+location            = "westeurope"
 
 prefix              = "nextcloud"
 
@@ -16,9 +14,9 @@ min_node_count = 1
 max_node_count = 5
 vm_size        = "Standard_D2s_v3"
 
-# PostgreSQL Configuration
-postgres_admin_username = "nextcloudadmin"
-postgres_database_name  = "nextcloud"
+# MariaDB Configuration
+mariadb_admin_username = "nextcloudadmin"
+mariadb_database_name  = "nextcloud"
 
 # Tags
 tags = {

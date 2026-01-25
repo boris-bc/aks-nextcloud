@@ -13,27 +13,27 @@ output "resource_group_name" {
   value       = azurerm_resource_group.nextcloud.name
 }
 
-output "postgres_fqdn" {
-  description = "FQDN of the PostgreSQL server"
-  value       = azurerm_postgresql_flexible_server.nextcloud.fqdn
+output "mariadb_fqdn" {
+  description = "FQDN of the MariaDB server"
+  value       = azurerm_mariadb_server.nextcloud.fqdn
   sensitive   = true
 }
 
-output "postgres_admin_username" {
-  description = "Administrator username for PostgreSQL"
-  value       = azurerm_postgresql_flexible_server.nextcloud.administrator_login
+output "mariadb_admin_username" {
+  description = "Administrator username for MariaDB"
+  value       = azurerm_mariadb_server.nextcloud.administrator_login
   sensitive   = true
 }
 
-output "postgres_admin_password" {
-  description = "Administrator password for PostgreSQL"
-  value       = random_password.postgres.result
+output "mariadb_admin_password" {
+  description = "Administrator password for MariaDB"
+  value       = random_password.mariadb.result
   sensitive   = true
 }
 
-output "postgres_database_name" {
-  description = "Name of the PostgreSQL database"
-  value       = azurerm_postgresql_flexible_server_database.nextcloud.name
+output "mariadb_database_name" {
+  description = "Name of the MariaDB database"
+  value       = azurerm_mariadb_database.nextcloud.name
 }
 
 output "storage_account_name" {

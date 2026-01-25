@@ -25,22 +25,22 @@ spec:
         - containerPort: 80
           name: http
         env:
-        - name: POSTGRES_HOST
+        - name: MYSQL_HOST
           valueFrom:
             secretKeyRef:
               name: nextcloud-db
               key: db-host
-        - name: POSTGRES_DB
+        - name: MYSQL_DATABASE
           valueFrom:
             secretKeyRef:
               name: nextcloud-db
               key: db-name
-        - name: POSTGRES_USER
+        - name: MYSQL_USER
           valueFrom:
             secretKeyRef:
               name: nextcloud-db
               key: db-username
-        - name: POSTGRES_PASSWORD
+        - name: MYSQL_PASSWORD
           valueFrom:
             secretKeyRef:
               name: nextcloud-db
