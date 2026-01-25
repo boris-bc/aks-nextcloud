@@ -35,6 +35,11 @@ output "storage_share_name" {
   value       = azurerm_storage_share.nextcloud_data.name
 }
 
+output "storage_config_share_name" {
+  description = "Name of the file share for Nextcloud config"
+  value       = azurerm_storage_share.nextcloud_config.name
+}
+
 output "kube_config" {
   description = "Kubernetes configuration"
   value       = azurerm_kubernetes_cluster.nextcloud.kube_config_raw

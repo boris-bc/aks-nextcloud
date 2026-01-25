@@ -98,6 +98,13 @@ resource "azurerm_storage_share" "nextcloud_data" {
   quota                = 100
 }
 
+# File share for Nextcloud config directory
+resource "azurerm_storage_share" "nextcloud_config" {
+  name                 = "nextcloud-config"
+  storage_account_name = azurerm_storage_account.nextcloud.name
+  quota                = 1  # Config files are small, 1GB is sufficient
+}
+
 # MySQL password for containerized MySQL deployment
 # This will be used in Kubernetes secrets
 resource "random_password" "mysql" {

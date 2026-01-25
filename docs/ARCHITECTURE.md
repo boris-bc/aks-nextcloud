@@ -12,8 +12,10 @@ This document describes the architecture of the Nextcloud deployment on Azure Ku
 3. **AKS Cluster**: Kubernetes orchestration
    - Autoscaling: 1-5 nodes
    - VM Size: Standard_D2s_v3
-4. **Storage Account**: Azure Files for persistent data
-   - 100 GB file share
+4. **Storage Account**: Azure Files for persistent user data and config
+   - User data file share: 100GB (for uploaded files)
+   - Config file share: 1GB (for configuration files)
+   - Application code remains in container (no rsync overhead)
 
 ### Kubernetes Resources
 
@@ -28,16 +30,18 @@ This document describes the architecture of the Nextcloud deployment on Azure Ku
    - ClusterIP for Redis
    - Headless service for MySQL StatefulSet
 5. **Storage**: 
-   - PVC with Azure Files for Nextcloud data
+   - PVC with Azure Files for Nextcloud user data (100GB)
+   - PVC with Azure Files for Nextcloud config (1GB) 
    - PVC with managed-csi for MySQL data (20GB)
+   - Application code remains in container filesystem (fast initialization)
 6. **Configuration**: ConfigMaps and Secrets
 
 ## Data Flow
 
 1. User → LoadBalancer → Nextcloud Pod
 2. Nextcloud → Redis (cache)
-3. Nextcloud → MySQL (data)
-4. Nextcloud → Azure Files (files)
+3. Nextcloud → MySQL (metadata and database)
+4. Nextcloud → Azure Files (user uploaded files + config)
 
 ## Security
 

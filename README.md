@@ -8,7 +8,7 @@ The infrastructure includes:
 
 - **Azure Kubernetes Service (AKS)**: Container orchestration platform
 - **MySQL (containerized)**: Database running as StatefulSet within AKS cluster
-- **Azure Storage Account**: Persistent storage for Nextcloud data using Azure Files
+- **Azure Storage Account**: Persistent storage for Nextcloud user files and config using Azure Files
 - **Azure Virtual Network**: Network isolation and security
 - **Redis**: In-memory cache for improved performance
 - **Kubernetes Resources**: 
@@ -17,6 +17,29 @@ The infrastructure includes:
   - Redis deployment for caching
   - Persistent Volume Claims for data storage
   - Services and Ingress for external access
+
+### Storage Architecture
+
+Nextcloud uses a **split storage approach** for optimal performance:
+
+1. **Application Code** (container local filesystem):
+   - Nextcloud application files remain in the container
+   - Fast startup and execution
+   - No rsync overhead during initialization
+
+2. **User Data** (Azure Files - 100GB):
+   - Mounted at `/var/www/html/data`
+   - Stores user-uploaded files
+   - ReadWriteMany access mode for multi-pod support
+
+3. **Configuration** (Azure Files - 1GB):
+   - Mounted at `/var/www/html/config`
+   - Stores config.php and settings
+   - Shared across all Nextcloud pods for consistency
+
+4. **Database** (Managed-CSI - 20GB):
+   - MySQL uses block storage for optimal performance
+   - Fast database operations
 
 ## Prerequisites
 

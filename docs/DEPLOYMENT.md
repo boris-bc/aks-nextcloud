@@ -2,6 +2,40 @@
 
 This guide provides step-by-step instructions for deploying Nextcloud on Azure Kubernetes Service.
 
+## Storage Architecture
+
+This deployment uses an **optimized split storage approach** for fast initialization and reliable multi-pod operations:
+
+### What Gets Mounted Where
+
+1. **Application Code** (`/var/www/html/*` except data and config):
+   - **Remains in container** filesystem
+   - **Why**: Fast initialization (no rsync overhead)
+   - Includes: PHP files, apps, themes, assets
+
+2. **User Data** (`/var/www/html/data`):
+   - **Mounted from Azure Files** (ReadWriteMany)
+   - **Why**: User-uploaded files need to be shared across all pods
+   - Size: 100GB
+
+3. **Configuration** (`/var/www/html/config`):
+   - **Mounted from Azure Files** (ReadWriteMany)
+   - **Why**: Config.php and settings must be consistent across pods
+   - Size: 1GB
+
+### Why Not Mount Entire /var/www/html?
+
+Mounting the entire Nextcloud directory on Azure Files causes:
+- **Extremely slow initialization** (15-30 minutes for rsync operations)
+- Connection timeouts and pod restarts
+- Startup probe failures
+
+With split storage:
+- ✅ **Fast initialization** (2-5 minutes instead of 30+ minutes)
+- ✅ **Reliable startup** (no timeouts)
+- ✅ **Multi-pod support** (data and config shared via Azure Files)
+- ✅ **Best practice** Nextcloud architecture
+
 ## Prerequisites
 
 Before starting, ensure you have:
