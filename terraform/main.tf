@@ -134,8 +134,13 @@ resource "random_password" "mysql" {
   special = true
 }
 
+# Random suffix for MySQL server name (must be globally unique)
+resource "random_id" "mysql" {
+  byte_length = 4
+}
+
 resource "azurerm_mysql_flexible_server" "nextcloud" {
-  name                = "${var.prefix}-mysql"
+  name                = "${var.prefix}-mysql-${random_id.mysql.hex}"
   resource_group_name = azurerm_resource_group.nextcloud.name
   location            = azurerm_resource_group.nextcloud.location
   
