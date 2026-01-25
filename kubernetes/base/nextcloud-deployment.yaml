@@ -25,27 +25,19 @@ spec:
         - sh
         - -c
         - |
-          # Wait for config.php to exist (created during first boot)
-          echo "Waiting for config.php to be created..."
-          for i in $(seq 1 60); do
-            if [ -f /var/www/html/config/config.php ]; then
-              echo "config.php found, updating trusted domains..."
-              break
-            fi
-            echo "Waiting... ($i/60)"
-            sleep 2
-          done
-          
-          # Add trusted domains using occ command (idempotent - won't duplicate)
-          if [ -f /var/www/html/config/config.php ]; then
+          # Check if Nextcloud is already installed
+          if [ -f /var/www/html/config/config.php ] && grep -q "'installed' => true" /var/www/html/config/config.php; then
+            echo "Nextcloud is installed, configuring trusted domains..."
             su -s /bin/sh www-data -c "php /var/www/html/occ config:system:set trusted_domains 1 --value='*.azurewebsites.net'" || echo "Warning: Failed to set trusted domain 1"
             su -s /bin/sh www-data -c "php /var/www/html/occ config:system:set trusted_domains 2 --value='*.westeurope.cloudapp.azure.com'" || echo "Warning: Failed to set trusted domain 2"
             su -s /bin/sh www-data -c "php /var/www/html/occ config:system:set trusted_domains 3 --value='nextcloud.example.com'" || echo "Warning: Failed to set trusted domain 3"
             echo "Trusted domains configured successfully"
           else
-            echo "config.php not found, skipping (will be configured on first boot)"
+            echo "Nextcloud not yet installed, skipping trusted domains configuration (will use NEXTCLOUD_TRUSTED_DOMAINS env var during installation)"
           fi
         volumeMounts:
+        - name: nextcloud-data
+          mountPath: /var/www/html/data
         - name: nextcloud-config
           mountPath: /var/www/html/config
       containers:

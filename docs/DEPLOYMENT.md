@@ -132,6 +132,15 @@ Nextcloud's initialization process:
 - Multiple pods starting simultaneously causes "flock: Permission denied" errors
 - After initialization, Nextcloud supports multiple replicas without issues
 
+### Trusted Domains Configuration
+
+The deployment includes an init container that automatically configures trusted domains:
+- **During initial installation**: Uses `NEXTCLOUD_TRUSTED_DOMAINS` environment variable
+- **For existing installations**: Init container uses `occ` command to update config.php
+- Configured domains: `*.azurewebsites.net`, `*.westeurope.cloudapp.azure.com`, `nextcloud.example.com`
+- Init container only runs when config.php exists (after first installation completes)
+- Allows access via Azure public IP DNS names and custom domains
+
 ### Verifying Initialization
 
 Check if Nextcloud has completed initialization:
