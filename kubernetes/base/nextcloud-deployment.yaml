@@ -1,0 +1,132 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nextcloud
+  namespace: nextcloud
+spec:
+  replicas: 1  # Start with 1 replica to avoid concurrent initialization conflicts
+  selector:
+    matchLabels:
+      app: nextcloud
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: nextcloud
+    spec:
+      containers:
+      - name: nextcloud
+        image: nextcloud:28-apache
+        ports:
+        - containerPort: 80
+          name: http
+        env:
+        - name: MYSQL_HOST
+          valueFrom:
+            secretKeyRef:
+              name: nextcloud-db
+              key: db-host
+        - name: MYSQL_DATABASE
+          valueFrom:
+            secretKeyRef:
+              name: nextcloud-db
+              key: db-name
+        - name: MYSQL_USER
+          valueFrom:
+            secretKeyRef:
+              name: nextcloud-db
+              key: db-username
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: nextcloud-db
+              key: db-password
+        - name: NEXTCLOUD_ADMIN_USER
+          valueFrom:
+            secretKeyRef:
+              name: nextcloud-admin
+              key: admin-username
+        - name: NEXTCLOUD_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: nextcloud-admin
+              key: admin-password
+        - name: REDIS_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: nextcloud-config
+              key: REDIS_HOST
+        - name: REDIS_HOST_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: nextcloud-config
+              key: REDIS_HOST_PORT
+        - name: NEXTCLOUD_TRUSTED_DOMAINS
+          valueFrom:
+            configMapKeyRef:
+              name: nextcloud-config
+              key: NEXTCLOUD_TRUSTED_DOMAINS
+        - name: PHP_MEMORY_LIMIT
+          valueFrom:
+            configMapKeyRef:
+              name: nextcloud-config
+              key: PHP_MEMORY_LIMIT
+        - name: PHP_UPLOAD_LIMIT
+          valueFrom:
+            configMapKeyRef:
+              name: nextcloud-config
+              key: PHP_UPLOAD_LIMIT
+        volumeMounts:
+        - name: nextcloud-data
+          mountPath: /var/www/html/data  # Only mount user data directory, not entire app
+        - name: nextcloud-config
+          mountPath: /var/www/html/config  # Mount config directory for multi-pod consistency
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        startupProbe:
+          httpGet:
+            path: /status.php
+            port: 80
+            httpHeaders:
+            - name: Host
+              value: localhost
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 60  # 60 failures × 10 sec = 600 sec (10 minutes) - sufficient with optimized storage
+        livenessProbe:
+          httpGet:
+            path: /status.php
+            port: 80
+            httpHeaders:
+            - name: Host
+              value: localhost
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /status.php
+            port: 80
+            httpHeaders:
+            - name: Host
+              value: localhost
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+      volumes:
+      - name: nextcloud-data
+        persistentVolumeClaim:
+          claimName: nextcloud-data
+      - name: nextcloud-config
+        persistentVolumeClaim:
+          claimName: nextcloud-config
