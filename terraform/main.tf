@@ -143,7 +143,7 @@ resource "azurerm_mariadb_server" "nextcloud" {
   administrator_login_password = random_password.mariadb.result
   
   sku_name   = "B_Gen5_2"
-  storage_mb = 51200
+  storage_mb = 5120  # 5GB minimum storage with auto-grow enabled
   version    = "10.3"
   
   auto_grow_enabled                 = true
