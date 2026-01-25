@@ -218,7 +218,7 @@ kubectl get events -n nextcloud --field-selector involvedObject.name=<pod-name>
 
 5. **If initialization is stuck, check database connectivity from a test pod:**
 ```bash
-kubectl run -it --rm debug --image=mysql:8.0 --restart=Never -n nextcloud -- mysql -h mysql.nextcloud.svc.cluster.local -u nextcloud -p
+kubectl run -it --rm debug --image=mysql:8.0 --restart=Never -n nextcloud -- mysql -h mysql -u nextcloud -p
 # Enter password from: kubectl get secret nextcloud-db -n nextcloud -o jsonpath='{.data.db-password}' | base64 -d
 ```
 
