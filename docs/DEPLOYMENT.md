@@ -224,6 +224,7 @@ kubectl get events -n nextcloud --field-selector involvedObject.name=<pod-name> 
    - Events will show "Container nextcloud failed startup probe"
    - Temporarily disable startup probe to let initialization finish:
    ```bash
+   # Note: This assumes nextcloud is the first container (index 0) in the pod spec
    kubectl patch deployment nextcloud -n nextcloud --type=json -p='[{"op": "remove", "path": "/spec/template/spec/containers/0/startupProbe"}]'
    ```
    - Wait 15-20 minutes for initialization
@@ -231,7 +232,9 @@ kubectl get events -n nextcloud --field-selector involvedObject.name=<pod-name> 
 
 6. **Verify Apache is running inside the container:**
 ```bash
-kubectl exec -n nextcloud -l app=nextcloud -- ps aux | grep apache
+# Get the pod name first
+POD_NAME=$(kubectl get pods -n nextcloud -l app=nextcloud -o jsonpath='{.items[0].metadata.name}')
+kubectl exec -n nextcloud $POD_NAME -- ps aux | grep apache
 ```
 
 7. **If initialization is stuck, check database connectivity from a test pod:**
