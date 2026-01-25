@@ -255,20 +255,17 @@ kubectl get secret nextcloud-db -n nextcloud -o jsonpath='{.data.db-password}' |
 # Should show a random password, not "REPLACE_WITH_MYSQL_PASSWORD"
 ```
 
-2. **Verify MySQL is accessible:**
+2. **Verify MySQL services are running:**
 ```bash
-kubectl get svc mysql -n nextcloud
-# Should show ClusterIP: None (headless service)
+kubectl get svc -n nextcloud
+# Should show two MySQL services:
+# - mysql: ClusterIP with an IP address (for client connections)
+# - mysql-headless: ClusterIP None (for StatefulSet pod management)
 ```
 
 3. **Test database connectivity from a debug pod:**
 ```bash
 kubectl run -it --rm debug --image=mysql:8.0 --restart=Never -n nextcloud -- mysql -h mysql -u nextcloud -p
-```
-
-3. **Check MySQL service:**
-```bash
-kubectl get svc mysql -n nextcloud
 ```
 
 ### MySQL StatefulSet Issues
