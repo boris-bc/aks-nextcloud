@@ -41,38 +41,8 @@ resource "azurerm_subnet" "aks" {
   address_prefixes     = ["10.0.1.0/24"]
 }
 
-# Subnet for MySQL
-resource "azurerm_subnet" "mysql" {
-  name                 = "${var.prefix}-mysql-subnet"
-  resource_group_name  = azurerm_resource_group.nextcloud.name
-  virtual_network_name = azurerm_virtual_network.nextcloud.name
-  address_prefixes     = ["10.0.2.0/24"]
-  
-  delegation {
-    name = "mysql-delegation"
-    service_delegation {
-      name = "Microsoft.DBforMySQL/flexibleServers"
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-      ]
-    }
-  }
-}
-
-# Private DNS Zone for MySQL
-resource "azurerm_private_dns_zone" "mysql" {
-  name                = "privatelink.mysql.database.azure.com"
-  resource_group_name = azurerm_resource_group.nextcloud.name
-  tags                = var.tags
-}
-
-resource "azurerm_private_dns_zone_virtual_network_link" "mysql" {
-  name                  = "${var.prefix}-mysql-vnet-link"
-  resource_group_name   = azurerm_resource_group.nextcloud.name
-  private_dns_zone_name = azurerm_private_dns_zone.mysql.name
-  virtual_network_id    = azurerm_virtual_network.nextcloud.id
-  tags                  = var.tags
-}
+# Note: MySQL will be deployed as a StatefulSet within the AKS cluster
+# No dedicated subnet needed for containerized MySQL
 
 # AKS Cluster
 resource "azurerm_kubernetes_cluster" "nextcloud" {
@@ -128,51 +98,12 @@ resource "azurerm_storage_share" "nextcloud_data" {
   quota                = 100
 }
 
-# MySQL Flexible Server
+# MySQL password for containerized MySQL deployment
+# This will be used in Kubernetes secrets
 resource "random_password" "mysql" {
   length  = 24
   special = true
 }
 
-# Random suffix for MySQL server name (must be globally unique)
-resource "random_id" "mysql" {
-  byte_length = 4
-}
-
-resource "azurerm_mysql_flexible_server" "nextcloud" {
-  name                = "${var.prefix}-mysql-${random_id.mysql.hex}"
-  resource_group_name = azurerm_resource_group.nextcloud.name
-  location            = azurerm_resource_group.nextcloud.location
-  
-  administrator_login    = var.mysql_admin_username
-  administrator_password = random_password.mysql.result
-  
-  sku_name   = "B_Standard_B1ms"  # B1ms is supported for MySQL Flexible Server
-  version    = "8.0.21"
-  
-  backup_retention_days        = 7
-  geo_redundant_backup_enabled = false
-  
-  delegated_subnet_id = azurerm_subnet.mysql.id
-  private_dns_zone_id = azurerm_private_dns_zone.mysql.id
-  
-  storage {
-    size_gb           = 20  # 20GB minimum storage for MySQL Flexible Server
-    auto_grow_enabled = true
-  }
-  
-  depends_on = [azurerm_private_dns_zone_virtual_network_link.mysql]
-  
-  tags = var.tags
-}
-
-resource "azurerm_mysql_flexible_database" "nextcloud" {
-  name                = var.mysql_database_name
-  resource_group_name = azurerm_resource_group.nextcloud.name
-  server_name         = azurerm_mysql_flexible_server.nextcloud.name
-  charset             = "utf8mb4"
-  collation           = "utf8mb4_unicode_ci"
-}
-
-# Note: MySQL Flexible Server uses private endpoint via delegated subnet
-# No public access is configured
+# Note: MySQL is deployed as a StatefulSet within Kubernetes
+# No Azure MySQL Flexible Server resources needed

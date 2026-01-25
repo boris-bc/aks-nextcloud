@@ -6,6 +6,7 @@ resources:
   - configmap.yaml
   - secrets.yaml
   - pvc.yaml
+  - mysql-statefulset.yaml
   - redis.yaml
   - nextcloud-deployment.yaml
   - nextcloud-service.yaml

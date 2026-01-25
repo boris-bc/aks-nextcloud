@@ -13,27 +13,10 @@ output "resource_group_name" {
   value       = azurerm_resource_group.nextcloud.name
 }
 
-output "mysql_fqdn" {
-  description = "FQDN of the MySQL server"
-  value       = azurerm_mysql_flexible_server.nextcloud.fqdn
-  sensitive   = true
-}
-
-output "mysql_admin_username" {
-  description = "Administrator username for MySQL"
-  value       = azurerm_mysql_flexible_server.nextcloud.administrator_login
-  sensitive   = true
-}
-
-output "mysql_admin_password" {
-  description = "Administrator password for MySQL"
+output "mysql_password" {
+  description = "MySQL root password for containerized deployment"
   value       = random_password.mysql.result
   sensitive   = true
-}
-
-output "mysql_database_name" {
-  description = "Name of the MySQL database"
-  value       = azurerm_mysql_flexible_database.nextcloud.name
 }
 
 output "storage_account_name" {
