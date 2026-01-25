@@ -147,7 +147,7 @@ resource "azurerm_mysql_flexible_server" "nextcloud" {
   administrator_login    = var.mysql_admin_username
   administrator_password = random_password.mysql.result
   
-  sku_name   = "B_Standard_B1s"
+  sku_name   = "B_Standard_B1ms"  # B1ms is supported for MySQL Flexible Server
   version    = "8.0.21"
   
   backup_retention_days        = 7
