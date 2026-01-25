@@ -128,16 +128,47 @@ kubectl logs -n nextcloud -l app=mysql
 kubectl rollout restart deployment/nextcloud -n nextcloud
 ```
 
+### Nextcloud Pods Not Becoming Ready
+
+If Nextcloud pods show as Running but READY is 0/1 for extended periods:
+
+1. **Check Nextcloud logs for initialization progress:**
+```bash
+kubectl logs -n nextcloud -l app=nextcloud --tail=100
+```
+
+2. **Nextcloud first-time initialization can take 5-10 minutes.** The startup probe allows up to 10 minutes (60 failures * 10s period).
+
+3. **If you see "connection refused" errors, the database might not be ready yet.**
+
+4. **Check pod events for health probe failures:**
+```bash
+kubectl get events -n nextcloud --field-selector involvedObject.name=<pod-name>
+```
+
+5. **If initialization is stuck, check database connectivity:**
+```bash
+kubectl exec -it -n nextcloud deployment/nextcloud -- mysql -h mysql -u nextcloud -p
+# Enter the password from the secret
+```
+
 ### Database Connection Issues
 
 If Nextcloud can't connect to MySQL:
 
-1. **Verify secrets are correct:**
+1. **Verify secrets are created (not using placeholders):**
 ```bash
-kubectl get secret nextcloud-db -n nextcloud -o yaml
+kubectl get secret nextcloud-db -n nextcloud -o jsonpath='{.data.db-password}' | base64 -d
+# Should show a random password, not "REPLACE_WITH_MYSQL_PASSWORD"
 ```
 
-2. **Test database connectivity from a debug pod:**
+2. **Verify MySQL is accessible:**
+```bash
+kubectl get svc mysql -n nextcloud
+# Should show ClusterIP: None (headless service)
+```
+
+3. **Test database connectivity from a debug pod:**
 ```bash
 kubectl run -it --rm debug --image=mysql:8.0 --restart=Never -n nextcloud -- mysql -h mysql -u nextcloud -p
 ```

@@ -90,6 +90,17 @@ spec:
           limits:
             memory: "2Gi"
             cpu: "1000m"
+        startupProbe:
+          httpGet:
+            path: /status.php
+            port: 80
+            httpHeaders:
+            - name: Host
+              value: localhost
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 60  # Allow up to 10 minutes for first-time initialization
         livenessProbe:
           httpGet:
             path: /status.php
@@ -97,10 +108,9 @@ spec:
             httpHeaders:
             - name: Host
               value: localhost
-          initialDelaySeconds: 180
           periodSeconds: 10
           timeoutSeconds: 5
-          failureThreshold: 6
+          failureThreshold: 3
         readinessProbe:
           httpGet:
             path: /status.php
@@ -108,10 +118,9 @@ spec:
             httpHeaders:
             - name: Host
               value: localhost
-          initialDelaySeconds: 90
           periodSeconds: 10
           timeoutSeconds: 5
-          failureThreshold: 6
+          failureThreshold: 3
       volumes:
       - name: nextcloud-data
         persistentVolumeClaim:
