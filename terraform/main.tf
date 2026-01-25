@@ -152,7 +152,7 @@ resource "azurerm_mysql_flexible_server" "nextcloud" {
   private_dns_zone_id = azurerm_private_dns_zone.mysql.id
   
   storage {
-    size_gb           = 5  # 5GB minimum storage
+    size_gb           = 20  # 20GB minimum storage for MySQL Flexible Server
     auto_grow_enabled = true
   }
   
